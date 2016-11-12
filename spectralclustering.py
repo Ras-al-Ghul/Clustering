@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.datasets.samples_generator import make_blobs
 
 Epsilonneighbourhood = True #Toggle for Epsilon neighbourhood similarity graph vs Gaussian similarity function graph
-numofclusters = 4
+numofclusters = 3
 
 # HTML ColorCodes
 Color = ['#ff2d00', '#000000', '#fffb00', '#ff0064', '#00aeff', \
@@ -28,7 +28,7 @@ ServiceID = ['671004572', '457008451', '581000256', '775001231', '455007891', '5
 # Empty as of now
 
 def createDataandVisualize():
-    centers = [[1, 1], [-1, -1], [1, -1], [-1, 1]]
+    centers = [[1, 1], [-1, -1], [1, -1]]
     X, labels = make_blobs(n_samples = 400, centers = centers, cluster_std = 0.4)
 
     for i in range(len(set(labels))):
@@ -79,11 +79,11 @@ def visualizeTNEBdataset():
 	return newdata, []
 
 def calcgaussiansimilarity(vec1, vec2):
-	gamma = 200
+	gamma = 10
 	return math.exp(-(np.linalg.norm(vec1 - vec2) ** 2) * gamma)
 
 def calceneighbourhood(vec1, vec2):
-	epsilon = 2.1
+	epsilon = 2
 	dist = np.linalg.norm(vec1 - vec2)
 	if dist <= epsilon:
 		return 1
@@ -97,21 +97,21 @@ def constructSimilarityMatrix(data, numofdata, labels):
 
 	similaritymatrix = np.zeros((numofdata, numofdata))
 
-	# for i in range(numofdata):
-	# 	for j in range(i, numofdata):
-	# 		dist = similaritymeasure(data[i], data[j])
-
-	# 		similaritymatrix[i][j] = dist
-	# 		similaritymatrix[j][i] = dist
-
 	for i in range(numofdata):
 		for j in range(i, numofdata):
-			if labels[i] == labels[j]:
-				similaritymatrix[i][j] = 1
-				similaritymatrix[j][i] = 1
-			else:
-				similaritymatrix[i][j] = 0
-				similaritymatrix[j][i] = 0
+			dist = similaritymeasure(data[i], data[j])
+
+			similaritymatrix[i][j] = dist
+			similaritymatrix[j][i] = dist
+
+	# for i in range(numofdata):
+	# 	for j in range(i, numofdata):
+	# 		if labels[i] == labels[j]:
+	# 			similaritymatrix[i][j] = 1
+	# 			similaritymatrix[j][i] = 1
+	# 		else:
+	# 			similaritymatrix[i][j] = 0
+	# 			similaritymatrix[j][i] = 0
 
 	return similaritymatrix
 
@@ -124,13 +124,6 @@ def getUnnormalizedLaplacian(similaritymatrix, numofdata):
 		degreematrix[i][i] = degrees[i]
 
 	return (degreematrix - similaritymatrix)
-
-def sorteigen(eigval, eigvec):
-	idx = eigval.argsort()[::-1]
-	eigval = eigval[idx]
-	eigvec = eigvec[:,idx]
-
-	return eigval, eigvec
 
 def deletecolumns(eigvecs, numofdata):
 	for i in range(numofdata - numofclusters):
